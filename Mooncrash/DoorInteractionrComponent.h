@@ -25,6 +25,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void OpenDoor(float DeltaTime);
+	void OpenDoor();
 	void CloseDoor(float DeltaTime);
 	
 private:
@@ -41,5 +42,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	AActor* ActorThatOpen;
+
+	UInputComponent* UserInput = nullptr;
 		
 };

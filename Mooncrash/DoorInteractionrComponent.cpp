@@ -3,8 +3,9 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "DoorInteractionrComponent.h"
+#include "Components/InputComponent.h"
 #include "GameFramework/Actor.h"
-
+float GlobalDeltaTime;
 // Sets default values for this component's properties
 UDoorInteractionrComponent::UDoorInteractionrComponent()
 {
@@ -23,8 +24,7 @@ void UDoorInteractionrComponent::BeginPlay()
 	OpenDoorTargetYaw += GetOwner()->GetActorRotation().Yaw;
 	ActorThatOpen = GetWorld()->GetFirstPlayerController()->GetPawn();
 	StartYaw = GetOwner()->GetActorRotation().Yaw;
-	// ...
-	
+	UserInput = GetOwner()->FindComponentByClass<UInputComponent>();		
 }
 
 
@@ -32,10 +32,16 @@ void UDoorInteractionrComponent::BeginPlay()
 void UDoorInteractionrComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-		
+	GlobalDeltaTime = DeltaTime;
 	if(TriggerOpenDoor->IsOverlappingActor(ActorThatOpen))
 	{
-		OpenDoor(DeltaTime);
+		OpenDoor(GlobalDeltaTime);
+		if(UserInput){
+			UE_LOG(LogTemp, Warning, TEXT("CAN INTERACT"));
+			UserInput->BindAction("Interact", IE_Pressed,this, &UDoorInteractionrComponent::OpenDoor);
+			UE_LOG(LogTemp, Warning, TEXT("PREESSS"));
+
+		}
 	}
 	else
 	{
@@ -50,6 +56,11 @@ void UDoorInteractionrComponent::OpenDoor(float DeltaTime)
 	OpenDoor.Yaw = FMath::Lerp(OpenDoor.Yaw,OpenDoorTargetYaw,DeltaTime*Speed);
 	GetOwner()->SetActorRotation(OpenDoor);
 	// ...
+}
+
+void UDoorInteractionrComponent::OpenDoor()
+{
+	OpenDoor(GlobalDeltaTime);
 }
 
 void UDoorInteractionrComponent::CloseDoor(float DeltaTime)
