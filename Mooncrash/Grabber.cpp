@@ -3,6 +3,7 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "CollisionQueryParams.h"
 #include "Grabber.h"
 
 // Sets default values for this component's properties
@@ -20,7 +21,6 @@ UGrabber::UGrabber()
 void UGrabber::BeginPlay()
 {
 	Super::BeginPlay();
-
 	// ...
 	
 }
@@ -35,17 +35,32 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 	FRotator PlayerViewPointRotation;
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation,PlayerViewPointRotation);
 
-	FVector DebugLineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
+	FVector InteractionLineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
 	DrawDebugLine(
 		GetWorld(),
 		PlayerViewPointLocation,
-		DebugLineEnd,
+		InteractionLineEnd,
 		FColor(0,255,0),
 		false,
 		0.f,
 		0,
 		5.f
 	);
-	// ...
+	FHitResult Hit;
+	FCollisionQueryParams TraceParams(FName(TEXT("")),false,GetOwner());
+	GetWorld()->LineTraceSingleByObjectType(
+		Hit,
+		PlayerViewPointLocation,
+		InteractionLineEnd,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
+		TraceParams
+	);
+
+	AActor* ActorHit = Hit.GetActor();
+	if(ActorHit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Line trace has hit: %s"), *(ActorHit->GetName()));
+	}
+	
 }
 
