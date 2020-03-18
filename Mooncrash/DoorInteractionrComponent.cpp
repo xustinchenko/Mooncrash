@@ -24,10 +24,21 @@ void UDoorInteractionrComponent::BeginPlay()
 	OpenDoorTargetYaw += GetOwner()->GetActorRotation().Yaw;
 	ActorThatOpen = GetWorld()->GetFirstPlayerController()->GetPawn();
 	StartYaw = GetOwner()->GetActorRotation().Yaw;
-	UserInput = GetOwner()->FindComponentByClass<UInputComponent>();		
+	UserInput = GetOwner()->FindComponentByClass<UInputComponent>();	
+	if(UserInput)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CAN INTERACT"));
+		UserInput->BindAction("Interact",IE_Pressed,this,&UDoorInteractionrComponent::OpenDoors);
+		UE_LOG(LogTemp, Warning, TEXT("PREESSS"));
+
+	}	
 }
 
-
+void UDoorInteractionrComponent::OpenDoors()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Open Door Press"));
+	//OpenDoor(GlobalDeltaTime);
+}
 // Called every frame
 void UDoorInteractionrComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -36,12 +47,6 @@ void UDoorInteractionrComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	if(TriggerOpenDoor->IsOverlappingActor(ActorThatOpen))
 	{
 		OpenDoor(GlobalDeltaTime);
-		if(UserInput){
-			UE_LOG(LogTemp, Warning, TEXT("CAN INTERACT"));
-			UserInput->BindAction("Interact", IE_Pressed,this, &UDoorInteractionrComponent::OpenDoor);
-			UE_LOG(LogTemp, Warning, TEXT("PREESSS"));
-
-		}
 	}
 	else
 	{
@@ -56,11 +61,6 @@ void UDoorInteractionrComponent::OpenDoor(float DeltaTime)
 	OpenDoor.Yaw = FMath::Lerp(OpenDoor.Yaw,OpenDoorTargetYaw,DeltaTime*Speed);
 	GetOwner()->SetActorRotation(OpenDoor);
 	// ...
-}
-
-void UDoorInteractionrComponent::OpenDoor()
-{
-	OpenDoor(GlobalDeltaTime);
 }
 
 void UDoorInteractionrComponent::CloseDoor(float DeltaTime)
