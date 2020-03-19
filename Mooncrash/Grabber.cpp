@@ -21,7 +21,7 @@ void UGrabber::BeginPlay()
 {
 	Super::BeginPlay();
 	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
-	if (PhysicsHandle)
+	if (!PhysicsHandle)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No physics handle component found on %s"), *(GetOwner()->GetName()));
 	}
@@ -42,35 +42,15 @@ void UGrabber::BeginPlay()
 void UGrabber::Grab()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grabber Press"));
-}
-
-void UGrabber::Release()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Grabber Release"));
-}
-// Called every frame
-void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation,PlayerViewPointRotation);
-
 	FVector InteractionLineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
-	DrawDebugLine(
-		GetWorld(),
-		PlayerViewPointLocation,
-		InteractionLineEnd,
-		FColor(0,255,0),
-		false,
-		0.f,
-		0,
-		5.f
-	);
+
 	FHitResult Hit;
 	FCollisionQueryParams TraceParams(FName(TEXT("")),false,GetOwner());
-	GetWorld()->LineTraceSingleByObjectType(
+	GetWorld()->LineTraceSingleByObjectType
+	(
 		Hit,
 		PlayerViewPointLocation,
 		InteractionLineEnd,
@@ -82,6 +62,36 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 	if(ActorHit)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Line trace has hit: %s"), *(ActorHit->GetName()));
+		UPrimitiveComponent* ComponentToGrab = Hit.GetComponent();
+		PhysicsHandle->GrabComponentAtLocation
+			(
+				ComponentToGrab,
+				NAME_None,
+				InteractionLineEnd
+			);
+	}
+
+	
+}
+
+void UGrabber::Release()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grabber Release"));
+	PhysicsHandle->ReleaseComponent();
+}
+// Called every frame
+void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation,PlayerViewPointRotation);
+	FVector InteractionLineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
+	if (PhysicsHandle->GrabbedComponent)
+	{
+		PhysicsHandle->SetTargetLocation(InteractionLineEnd);
 	}
 	
 }
