@@ -44,5 +44,8 @@ private:
 
 	UInputComponent* UserInput = nullptr;
 	void OpenDoors();
+
+	UPROPERTY()
+	UAudioComponent* AudioComponent = nullptr;
 		
 };

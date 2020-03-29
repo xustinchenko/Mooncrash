@@ -1,6 +1,7 @@
 // Yevhen Ustinchenko 2020
 
 #include "Engine/World.h"
+#include "Components/AudioComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "DoorInteractionrComponent.h"
 #include "Components/InputComponent.h"
@@ -16,7 +17,6 @@ UDoorInteractionrComponent::UDoorInteractionrComponent()
 	// ...
 }
 
-
 // Called when the game starts
 void UDoorInteractionrComponent::BeginPlay()
 {
@@ -24,7 +24,8 @@ void UDoorInteractionrComponent::BeginPlay()
 	OpenDoorTargetYaw += GetOwner()->GetActorRotation().Yaw;
 	ActorThatOpen = GetWorld()->GetFirstPlayerController()->GetPawn();
 	StartYaw = GetOwner()->GetActorRotation().Yaw;
-	UserInput = GetOwner()->FindComponentByClass<UInputComponent>();	
+	UserInput = GetWorld()->GetFirstPlayerController()->GetPawn()->FindComponentByClass<UInputComponent>();	
+	AudioComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
 	if(UserInput)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("CAN INTERACT"));
@@ -37,13 +38,16 @@ void UDoorInteractionrComponent::BeginPlay()
 void UDoorInteractionrComponent::OpenDoors()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Open Door Press"));
-	//OpenDoor(GlobalDeltaTime);
+	OpenDoor(GlobalDeltaTime);
 }
 // Called every frame
 void UDoorInteractionrComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	GlobalDeltaTime = DeltaTime;
+	
+	TArray<AActor*> OverlappingActors;
+	TriggerOpenDoor->GetOverlappingActors(OverlappingActors);
 	if(TriggerOpenDoor->IsOverlappingActor(ActorThatOpen))
 	{
 		OpenDoor(GlobalDeltaTime);
@@ -60,6 +64,7 @@ void UDoorInteractionrComponent::OpenDoor(float DeltaTime)
 	FRotator OpenDoor = GetOwner()->GetActorRotation();
 	OpenDoor.Yaw = FMath::Lerp(OpenDoor.Yaw,OpenDoorTargetYaw,DeltaTime*Speed);
 	GetOwner()->SetActorRotation(OpenDoor);
+	AudioComponent->Play();
 	// ...
 }
 
