@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "Engine/World.h"
 #include "Tank.h"
 #include "GameFramework/PlayerController.h"
 #include "CoreMinimal.h"
@@ -18,6 +19,8 @@ class MOONCRASH_API ATankAIController : public AAIController
 
 private:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	void AimPlayer();
 
 	ATank* GetControlledTank() const;
 	ATank* GetPalyerTank() const;
